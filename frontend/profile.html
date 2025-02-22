@@ -7,8 +7,11 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            margin: 40px;
             padding: 0 40px; /* Added padding on the sides */
+        }
+        #heading{
+            margin-bottom: 50px;
         }
         .rating-container {
             margin-bottom: 50px;
@@ -56,17 +59,7 @@
             border: 2px solid white;
             box-shadow: 0px 0px 5px rgba(0,0,0,0.2);
         }
-        /* Labels directly aligned with slider ticks */
-        .labels {
-            position: relative;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            margin-top: 5px;
-            font-size: 14px;
-            color: #666;
-            padding: 0 10px;
-        }
+       
         .labels span {
             position: absolute;
             transform: translateX(-50%);
@@ -90,64 +83,81 @@
         /* Center the submit button */
         .button-container {
             display: flex;
-            justify-content: center;
+            justify-content: right;
             margin-top: 20px;
+            font-size: 40px;
         }
     </style>
 </head>
 <body>
 
-    <h2>Rate Your Flavor Preferences</h2>
+    <h2 id="heading">Rate Your Flavor Preferences</h2>
     <form>
         <div class="rating-container">
-            <label for="sweetness">Sweetness:</label>
+            <label for="sweetness">Sweetness(0 = Hate Sweet, 10 = Love Sweet):</label>
             <input type="range" id="sweetness" name="sweetness" min="0" max="10" value="5" class="slider">
             <span class="value" id="sweetnessValue">5</span>
-            <div class="labels">
-                <span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span>
-            </div>
+            
         </div>
 
         <div class="rating-container">
-            <label for="saltiness">Saltiness:</label>
+            <label for="saltiness">Saltiness(0 = Hate Salt, 10 = Love Sweet):</label>
             <input type="range" id="saltiness" name="saltiness" min="0" max="10" value="5" class="slider">
             <span class="value" id="saltinessValue">5</span>
-            <div class="labels">
-                <span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span>
-            </div>
+            
         </div>
 
         <div class="rating-container">
-            <label for="sourness">Sourness:</label>
+            <label for="sourness">Sourness(0 = Hate Sour, 10 = Love Sour):</label>
             <input type="range" id="sourness" name="sourness" min="0" max="10" value="5" class="slider">
             <span class="value" id="sournessValue">5</span>
-            <div class="labels">
-                <span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span>
-            </div>
+            
         </div>
 
         <div class="rating-container">
-            <label for="spiciness">Spiciness:</label>
+            <label for="spiciness">Spiciness(0 = Hate Spice, 10 = Love Spice):</label>
             <input type="range" id="spiciness" name="spiciness" min="0" max="10" value="5" class="slider">
             <span class="value" id="spicinessValue">5</span>
-            <div class="labels">
-                <span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span>
-            </div>
+            
         </div>
 
         <div class="rating-container">
-            <label for="umaminess">Umaminess:</label>
+            <label for="umaminess">Umaminess(0 = Hate Umami, 10 = Love Umami):</label>
             <input type="range" id="umaminess" name="umaminess" min="0" max="10" value="5" class="slider">
             <span class="value" id="umaminessValue">5</span>
-            <div class="labels">
-                <span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span>
-            </div>
+            
         </div>
 
         <!-- Centered Submit Button -->
         <div class="button-container">
-            <button type="submit">Submit</button>
+            <a href = "">
+                <button type="submit"; style = " display: flex;
+                justify-content: right;
+                margin-top: 20px;
+                font-size: 40px;
+                font-family:serif, Times, 'Times New Roman' ;
+                font-size: 20px; 
+                background-color: goldenrod; 
+                color: black;
+                border-radius: 15px;
+                justify-content: right;">Submit</button>
+            </a>
         </div>
+        <div>
+            <a href = "index.html">
+                <button style = " display: flex;
+                justify-content: right;
+                margin-top: 20px;
+                font-size: 40px;
+                font-family:serif, Times, 'Times New Roman' ;
+                font-size: 20px; 
+                background-color: goldenrod; 
+                color: black;
+                border-radius: 15px;
+                justify-content: left;">Back</button>
+            </a>
+        </div>
+
     </form>
 
     <script>
