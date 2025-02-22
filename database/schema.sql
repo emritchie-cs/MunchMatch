@@ -32,3 +32,7 @@ CREATE TABLE reviews (
     sourness_score INT CHECK (spiciness_score BETWEEN 0 AND 10),
     umaminess_score INT CHECK (spiciness_score BETWEEN 0 AND 10)
 );
+
+ALTER TABLE reviews 
+ADD CONSTRAINT fk_reviews_restaurants 
+FOREIGN KEY (restaurant_id) REFERENCES restaurants(restaurant_id) ON DELETE CASCADE;
