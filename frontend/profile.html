@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flavor Intensity Rating</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0 40px; /* Added padding on the sides */
+        }
+        .rating-container {
+            margin-bottom: 50px;
+            position: relative;
+            width: 100%;
+        }
+        .slider {
+            appearance: none; /* Standard property */
+            -webkit-appearance: none; /* Safari and Chrome */
+            -moz-appearance: none; /* Firefox */
+            width: 100%;
+            height: 6px;
+            border-radius: 5px;
+            background: #ccc;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity .2s;
+            position: relative;
+        }
+        .slider:hover {
+            opacity: 1;
+        }
+        /* Custom thumb */
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            width: 25px;
+            height: 25px;
+            background: #5AB9B9;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0px 0px 5px rgba(0,0,0,0.2);
+        }
+        .slider::-moz-range-thumb {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            width: 25px;
+            height: 25px;
+            background: #5AB9B9;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0px 0px 5px rgba(0,0,0,0.2);
+        }
+        /* Labels directly aligned with slider ticks */
+        .labels {
+            position: relative;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 14px;
+            color: #666;
+            padding: 0 10px;
+        }
+        .labels span {
+            position: absolute;
+            transform: translateX(-50%);
+        }
+        .value {
+            font-weight: bold;
+            display: block;
+            text-align: center;
+            margin-top: 10px;
+            color: #5AB9B9;
+            font-size: 18px;
+        }
+        /* Custom label positioning for alignment */
+        .labels span:nth-child(1) { left: 0%; }
+        .labels span:nth-child(2) { left: 20%; }
+        .labels span:nth-child(3) { left: 40%; }
+        .labels span:nth-child(4) { left: 60%; }
+        .labels span:nth-child(5) { left: 80%; }
+        .labels span:nth-child(6) { left: 100%; }
+
+        /* Center the submit button */
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Rate Your Flavor Preferences</h2>
+    <form>
+        <div class="rating-container">
+            <label for="sweetness">Sweetness:</label>
+            <input type="range" id="sweetness" name="sweetness" min="0" max="10" value="5" class="slider">
+            <span class="value" id="sweetnessValue">5</span>
+            <div class="labels">
+                <span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span>
+            </div>
+        </div>
+
+        <div class="rating-container">
+            <label for="saltiness">Saltiness:</label>
+            <input type="range" id="saltiness" name="saltiness" min="0" max="10" value="5" class="slider">
+            <span class="value" id="saltinessValue">5</span>
+            <div class="labels">
+                <span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span>
+            </div>
+        </div>
+
+        <div class="rating-container">
+            <label for="sourness">Sourness:</label>
+            <input type="range" id="sourness" name="sourness" min="0" max="10" value="5" class="slider">
+            <span class="value" id="sournessValue">5</span>
+            <div class="labels">
+                <span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span>
+            </div>
+        </div>
+
+        <div class="rating-container">
+            <label for="spiciness">Spiciness:</label>
+            <input type="range" id="spiciness" name="spiciness" min="0" max="10" value="5" class="slider">
+            <span class="value" id="spicinessValue">5</span>
+            <div class="labels">
+                <span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span>
+            </div>
+        </div>
+
+        <div class="rating-container">
+            <label for="umaminess">Umaminess:</label>
+            <input type="range" id="umaminess" name="umaminess" min="0" max="10" value="5" class="slider">
+            <span class="value" id="umaminessValue">5</span>
+            <div class="labels">
+                <span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span>
+            </div>
+        </div>
+
+        <!-- Centered Submit Button -->
+        <div class="button-container">
+            <button type="submit">Submit</button>
+        </div>
+    </form>
+
+    <script>
+        // Function to update slider value display
+        function updateValue(sliderId, valueId) {
+            const slider = document.getElementById(sliderId);
+            const output = document.getElementById(valueId);
+
+            slider.addEventListener("input", function() {
+                output.textContent = slider.value;
+            });
+        }
+
+        // Attach event listeners to all sliders
+        updateValue("sweetness", "sweetnessValue");
+        updateValue("saltiness", "saltinessValue");
+        updateValue("sourness", "sournessValue");
+        updateValue("spiciness", "spicinessValue");
+        updateValue("umaminess", "umaminessValue");
+    </script>
+
+</body>
+</html>
