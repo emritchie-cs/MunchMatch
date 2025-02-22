@@ -17,6 +17,23 @@
                         border-radius: 15px;">Try MunchMatch</button>
     </a>
     
-
+<script>
+     const testBackend = () => {
+        fetch('http://localhost:5000/api/test', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ data: '1w' })  // Assuming the server expects an object with a 'data' field
+        })
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => {
+                console.error('Error:', error);
+                return '';
+            });
+    };
+    testBackend()
+</script>
 </body>
 </html>
