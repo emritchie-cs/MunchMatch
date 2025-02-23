@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Restaurant Recommendations</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDs_pERM-uQQCh39ncyHgzpnK_EDanv7sM&libraries=places&callback=initMap" async defer></script>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to right, #ff9a9e, #fad0c4);
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: 50px auto;
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      font-size: 32px;
+      font-weight: bold;
+      color: #5AB9B9;
+      margin-bottom: 20px;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      font-size: 18px;
+      padding: 10px;
+      background: #f9f9f9;
+      margin: 10px 0;
+      border-radius: 10px;
+      box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    #map {
+      height: 400px;
+      width: 100%;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+    .error-message {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+  <script>
+    let map;
+
+    async function initMap() {
+      try {
+        const response = await fetch('http://127.0.0.1:5000/api/recommend', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            location: "Atlanta, GA",
+            saltiness: 5,
+            sweetness: 5,
+            spiciness: 5,
+            sourness: 5,
+            umaminess: 5
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Received recommended restaurants:", data);
+
+        map = new google.maps.Map(document.getElementById("map"), {
+          center: { lat: 33.7490, lng: -84.3880 },
+          zoom: 12,
+        });
+
+        const listContainer = document.getElementById("restaurant-list");
+        listContainer.innerHTML = "";
+
+        const placesService = new google.maps.places.PlacesService(map);
+        data.forEach((restaurant) => {
+          const placeId = restaurant.google_maps_id;
+          if (placeId && placeId !== "Not Found") {
+            placesService.getDetails({ placeId: placeId }, (place, status) => {
+              if (status === google.maps.places.PlacesServiceStatus.OK) {
+                const marker = new google.maps.Marker({
+                  position: place.geometry.location,
+                  map: map,
+                  title: restaurant.name
+                });
+                const item = document.createElement("li");
+                item.textContent = `${restaurant.name} - ${restaurant.location} (${restaurant.cuisine})`;
+                listContainer.appendChild(item);
+              } else {
+                console.warn(`Failed to get details for: ${restaurant.name} (Status: ${status})`);
+              }
+            });
+          }
+        });
+      } catch (error) {
+        console.error('Error fetching recommendations:', error);
+        document.getElementById("error-message").textContent = "Failed to load recommendations. Please try again later.";
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>Top Restaurant Recommendations</h1>
+    <p id="error-message" class="error-message"></p>
+    <ul id="restaurant-list"></ul>
+    <div id="map"></div>
+  </div>
+</body>
+</html>
