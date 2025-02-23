@@ -1,0 +1,67 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Recommendations</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDs_pERM-uQQCh39ncyHgzpnK_EDanv7sM&callback=initMap" async defer></script>
+    <script>
+        let map;
+        function initMap() {
+            fetch('http://127.0.0.1:5000/api/recommend', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    location: "Your Location", // e.g., "New York" or any valid location string
+                    saltiness: 5,
+                    sweetness: 5,
+                    spiciness: 5,
+                    sourness: 5,
+                    umaminess: 5
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Received data:", data);
+                const topRestaurants = data.top_restaurants;
+                map = new google.maps.Map(document.getElementById("map"), {
+                    center: { lat: 40.7128, lng: -74.0060 },
+                    zoom: 12,
+                });
+
+                topRestaurants.forEach((restaurant, index) => {
+                    const marker = new google.maps.Marker({
+                        position: { lat: 40.7128 + index * 0.01, lng: -74.0060 + index * 0.01 },
+                        map: map,
+                        title: restaurant[0]
+                    });
+                });
+
+                const listContainer = document.getElementById("restaurant-list");
+                listContainer.innerHTML = "";
+                data.all_restaurants.forEach(restaurant => {
+                    const item = document.createElement("li");
+                    item.textContent = `${restaurant[0]} - Initial: ${restaurant[1]}, Adjusted: ${restaurant[2]}`;
+                    listContainer.appendChild(item);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching recommendations:', error);
+                document.getElementById("error-message").textContent = "Failed to load recommendations. Please try again later.";
+            });
+        }
+    </script>
+</head>
+<body onload="initMap()">
+    <h1>Top Restaurant Recommendations</h1>
+    <p id="error-message" style="color: red;"></p>
+    <ul id="restaurant-list"></ul>
+    <div id="map" style="height: 400px; width: 100%;"></div>
+</body>
+</html>
