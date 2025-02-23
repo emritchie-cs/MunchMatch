@@ -1,99 +1,94 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, request, jsonify
 from flask_cors import CORS
-import psycopg2
 import numpy as np
+import os
+from supabase import create_client, Client
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
+CORS(app, resources={r"/api/*": {"origins": ["http://localhost:8000", "http://127.0.0.1:8000"]}})
 
-# Database connection function
-def get_db_connection():
-    return psycopg2.connect(
-        dbname="your_dbname",
-        user="your_username",
-        password="your_password",
-        host="localhost",
-        port="5432"
-    )
+# Supabase Configuration
+SUPABASE_URL = os.getenv("SUPABASE_URL", "https://hnphrbhajwsclrmexqbi.supabase.co")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhucGhyYmhhandzY2xybWV4cWJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAyNjU3MzksImV4cCI6MjA1NTg0MTczOX0.KGDIw3QKWC9s5s8ak0H4Tm8vAYKyYTSwZ3i_JO9pw_Q")
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# Similarity calculation using Euclidean distance
-def calculate_similarity(user_prefs, restaurant):
+# Global variable to store user intake data
+user_preferences_data = {}
+
+# Similarity calculation using Euclidean distance (assumes all required fields exist)
+def calculate_similarity(restaurant):
+    global user_preferences_data  # use the global variable
     user_tastes = np.array([
-        user_prefs['saltiness'],
-        user_prefs['sweetness'],
-        user_prefs['spiciness'],
-        user_prefs['sourness'],
-        user_prefs['umaminess']
+        float(user_preferences_data['sweetness']),
+        float(user_preferences_data['saltiness']),
+        float(user_preferences_data['spiciness']),
+        float(user_preferences_data['sourness']),
+        float(user_preferences_data['umaminess'])
     ])
     
     restaurant_tastes = np.array([
-        restaurant['avg_saltiness'] or 5,  # Default to neutral if None
-        restaurant['avg_sweetness'] or 5,
-        restaurant['avg_spiciness'] or 5,
-        restaurant['avg_sourness'] or 5,
-        restaurant['avg_umaminess'] or 5
+        float(restaurant['avg_saltiness']),
+        float(restaurant['avg_sweetness']),
+        float(restaurant['avg_spiciness']),
+        float(restaurant['avg_sourness']),
+        float(restaurant['avg_umaminess'])
     ])
     
-    return np.linalg.norm(user_tastes - restaurant_tastes)
+    # Debug prints to confirm values
+    #print(f"User Preferences: {user_tastes}")
+    #print(f"Restaurant {restaurant.get('name', 'Unknown')} Tastes: {restaurant_tastes}")
+    
+    distance = np.linalg.norm(user_tastes - restaurant_tastes)
+    #print(distance)
+    return distance
 
-# Route to accept user preferences and return top 5 restaurant matches
+
+# Endpoint to accept user preferences (intake)
+@app.route('/api/intake', methods=['POST'])
+def intake():
+    global user_preferences_data
+    data = request.get_json()
+    print("Received intake data:", data)
+    # Store the full payload (including location and taste values)
+    user_preferences_data = data
+    return jsonify({'status': 'preferences stored'})
+
+# Endpoint to return top 5 recommended restaurants
 @app.route('/api/recommend', methods=['POST'])
 def recommend():
+    global user_preferences_data
+    # Use stored preferences if available; otherwise, fall back to request payload.
     data = request.get_json()
     user_location = data.get("location")
-    
     if not user_location:
         return jsonify({"error": "Location is required"}), 400
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    # Fetch restaurants from Supabase based on location
+    response = supabase.table("restaurants").select("*").eq("location", user_location).execute()
+    if not response.data:
+        return jsonify({"error": "No restaurants found in this location"}), 404
 
-    # Query to find the top 5 matching restaurants
-    query = """
-        SELECT r.*
-        FROM restaurants r
-        WHERE r.location = %s
-        ORDER BY 
-            ABS(%s - COALESCE(r.avg_saltiness, 5)) +
-            ABS(%s - COALESCE(r.avg_sweetness, 5)) +
-            ABS(%s - COALESCE(r.avg_spiciness, 5)) +
-            ABS(%s - COALESCE(r.avg_sourness, 5)) +
-            ABS(%s - COALESCE(r.avg_umaminess, 5)) 
-        LIMIT 5;
-    """
+    restaurants = response.data
+    #(restaurants)
+    #print(f"Retrieved {len(restaurants)} restaurants from database.")
 
-    cursor.execute(query, (
-        user_location,
-        data["saltiness"],
-        data["sweetness"],
-        data["spiciness"],
-        data["sourness"],
-        data["umaminess"]
-    ))
-    
-    restaurants = cursor.fetchall()
-    cursor.close()
-    conn.close()
+    # (Optional) Ensure required restaurant taste attributes exist;
+    # here we assume they do exist in your database.
 
-    # Convert result to JSON
-    restaurant_list = [
-        {
-            "restaurant_id": r[0],
-            "name": r[1],
-            "location": r[2],
-            "cuisine": r[3],
-            "avg_saltiness": r[4],
-            "avg_sweetness": r[5],
-            "avg_spiciness": r[6],
-            "avg_sourness": r[7],
-            "avg_umaminess": r[8],
-            "google_maps_id": r[9]
-        }
-        for r in restaurants
-    ]
+    # Calculate similarity for each restaurant
+    valid_restaurants = []
+    for restaurant in restaurants:
+        try:
+            restaurant['similarity'] = calculate_similarity(restaurant)
+            valid_restaurants.append(restaurant)
+        except Exception as e:
+            print(f"Skipping {restaurant.get('name', 'Unknown')}: {e}")
+            continue
 
-    return jsonify(restaurant_list)
-
+    # Sort by similarity (lower distance means more similar) and return top 5
+    top_matches = sorted(valid_restaurants, key=lambda x: x['similarity'])[:5]
+    #print("Top 5 Matches:", [(r['name'], r['similarity']) for r in top_matches])
+    return jsonify(top_matches)
 
 if __name__ == '__main__':
     app.run(debug=True)
