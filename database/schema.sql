@@ -12,7 +12,7 @@ CREATE TABLE restaurants (
     restaurant_id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     location VARCHAR(255) NOT NULL,
-    cuising VARCHAR(100),
+    cuisine VARCHAR(100),
     avg_saltiness FLOAT DEFAULT NULL,
     avg_sweetness FLOAT DEFAULT NULL,
     avg_spiciness FLOAT DEFAULT NULL,
@@ -21,6 +21,7 @@ CREATE TABLE restaurants (
     google_maps_id VARCHAR(100) UNIQUE NOT NULL
 );
 
+SELECT * FROM restaurants;
 
 CREATE TABLE reviews (
     review_id SERIAL PRIMARY KEY,
