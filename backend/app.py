@@ -69,8 +69,8 @@ def recommend():
         return jsonify({"error": "No restaurants found in this location"}), 404
 
     restaurants = response.data
-    print(restaurants)
-    print(f"Retrieved {len(restaurants)} restaurants from database.")
+    #(restaurants)
+    #print(f"Retrieved {len(restaurants)} restaurants from database.")
 
     # (Optional) Ensure required restaurant taste attributes exist;
     # here we assume they do exist in your database.
@@ -87,7 +87,7 @@ def recommend():
 
     # Sort by similarity (lower distance means more similar) and return top 5
     top_matches = sorted(valid_restaurants, key=lambda x: x['similarity'])[:5]
-    print("Top 5 Matches:", [(r['name'], r['similarity']) for r in top_matches])
+    #print("Top 5 Matches:", [(r['name'], r['similarity']) for r in top_matches])
     return jsonify(top_matches)
 
 if __name__ == '__main__':
