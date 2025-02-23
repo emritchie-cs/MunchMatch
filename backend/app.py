@@ -1,20 +1,16 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, request, jsonify
 from flask_cors import CORS
-import psycopg2
 import numpy as np
+import os
+from supabase import create_client, Client
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": ["http://localhost:8000", "http://127.0.0.1:8000"]}})
 
-# Database connection function
-def get_db_connection():
-    return psycopg2.connect(
-        dbname="your_dbname",
-        user="your_username",
-        password="your_password",
-        host="localhost",
-        port="5000"
-    )
+# Supabase Configuration
+SUPABASE_URL = os.getenv("SUPABASE_URL", "https://hnphrbhajwsclrmexqbi.supabase.co")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhucGhyYmhhandzY2xybWV4cWJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAyNjU3MzksImV4cCI6MjA1NTg0MTczOX0.KGDIw3QKWC9s5s8ak0H4Tm8vAYKyYTSwZ3i_JO9pw_Q")
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # Similarity calculation using Euclidean distance
 def calculate_similarity(user_prefs, restaurant):
@@ -27,11 +23,11 @@ def calculate_similarity(user_prefs, restaurant):
     ])
     
     restaurant_tastes = np.array([
-        restaurant['avg_saltiness'] or 5,  # Default to neutral if None
-        restaurant['avg_sweetness'] or 5,
-        restaurant['avg_spiciness'] or 5,
-        restaurant['avg_sourness'] or 5,
-        restaurant['avg_umaminess'] or 5
+        restaurant.get('avg_saltiness', 5),
+        restaurant.get('avg_sweetness', 5),
+        restaurant.get('avg_spiciness', 5),
+        restaurant.get('avg_sourness', 5),
+        restaurant.get('avg_umaminess', 5)
     ])
     
     return np.linalg.norm(user_tastes - restaurant_tastes)
@@ -39,67 +35,27 @@ def calculate_similarity(user_prefs, restaurant):
 # Route to accept user preferences and return top 5 restaurant matches
 @app.route('/api/recommend', methods=['POST'])
 def recommend():
-    print("woof")
     data = request.get_json()
     user_location = data.get("location")
-    
+    print(data)
     if not user_location:
         return jsonify({"error": "Location is required"}), 400
-    print("woof1.5")
+    # Fetch restaurants from Supabase
+    response = supabase.table("restaurants").select("*").eq("location", user_location).execute()
+    print(response)
+    if not response.data:
+        return jsonify({"error": "No restaurants found in this location"}), 404
 
-    conn = get_db_connection()
-    print("woof1.75")
-    cursor = conn.cursor()
-    print("woof2")
+    restaurants = response.data
 
-    # Query to find the top 5 matching restaurants
-    query = """
-        SELECT r.*
-        FROM restaurants r
-        WHERE r.location = %s
-        ORDER BY 
-            ABS(%s - COALESCE(r.avg_saltiness, 5)) +
-            ABS(%s - COALESCE(r.avg_sweetness, 5)) +
-            ABS(%s - COALESCE(r.avg_spiciness, 5)) +
-            ABS(%s - COALESCE(r.avg_sourness, 5)) +
-            ABS(%s - COALESCE(r.avg_umaminess, 5)) 
-        LIMIT 5;
-    """
-    print("meow")
+    # Calculate similarity for each restaurant
+    for restaurant in restaurants:
+        restaurant['similarity'] = calculate_similarity(data, restaurant)
 
-    cursor.execute(query, (
-        user_location,
-        data["saltiness"],
-        data["sweetness"],
-        data["spiciness"],
-        data["sourness"],
-        data["umaminess"]
-    ))
-    
-    restaurants = cursor.fetchall()
-    cursor.close()
-    conn.close()
+    # Sort by similarity and return top 5
+    top_matches = sorted(restaurants, key=lambda x: x['similarity'])[:5]
 
-    # Convert result to JSON
-    restaurant_list = [
-        {
-            "restaurant_id": r[0],
-            "name": r[1],
-            "location": r[2],
-            "cuisine": r[3],
-            "avg_saltiness": r[4],
-            "avg_sweetness": r[5],
-            "avg_spiciness": r[6],
-            "avg_sourness": r[7],
-            "avg_umaminess": r[8],
-            "google_maps_id": r[9]
-        }
-        for r in restaurants
-    ]
-    print("meow2")
-
-    return jsonify(restaurant_list)
-
+    return jsonify(top_matches)
 
 if __name__ == '__main__':
     app.run(debug=True)

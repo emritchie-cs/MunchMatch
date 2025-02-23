@@ -5,7 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Restaurant Recommendations</title>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDs_pERM-uQQCh39ncyHgzpnK_EDanv7sM&callback=initMap" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDs_pERM-uQQCh39ncyHgzpnK_EDanv7sM" async defer>
+        initMap()
+    </script>
     <script>
         let map;
         function initMap() {
@@ -13,7 +15,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    location: "Your Location", // e.g., "New York" or any valid location string
+                    location: "Atlanta, GA", // e.g., "New York" or any valid location string
                     saltiness: 5,
                     sweetness: 5,
                     spiciness: 5,
@@ -29,11 +31,12 @@
             })
             .then(data => {
                 console.log("Received data:", data);
-                const topRestaurants = data.top_restaurants;
+                const topRestaurants = data;
                 map = new google.maps.Map(document.getElementById("map"), {
                     center: { lat: 40.7128, lng: -74.0060 },
                     zoom: 12,
                 });
+                console.log(topRestaurants)
 
                 topRestaurants.forEach((restaurant, index) => {
                     const marker = new google.maps.Marker({
@@ -45,11 +48,13 @@
 
                 const listContainer = document.getElementById("restaurant-list");
                 listContainer.innerHTML = "";
-                data.all_restaurants.forEach(restaurant => {
+                /* CURRENTLY THERE IS NO DISTINCTIONS BETWEEN A RANDOM RESTO AND A TOP RESTO
+                data.forEach(restaurant => {
                     const item = document.createElement("li");
                     item.textContent = `${restaurant[0]} - Initial: ${restaurant[1]}, Adjusted: ${restaurant[2]}`;
                     listContainer.appendChild(item);
                 });
+                */
             })
             .catch(error => {
                 console.error('Error fetching recommendations:', error);
