@@ -7,7 +7,7 @@ CREATE TABLE user_preferences (
     sourness INT CHECK (sourness BETWEEN 0 AND 10),
     umaminess INT CHECK (sourness BETWEEN 0 AND 10)
 );
-show data_directory;
+
 CREATE TABLE restaurants (
     restaurant_id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
